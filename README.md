@@ -29,6 +29,7 @@ if (!requireNamespace("devtools", quietly = TRUE)) {
 
 # Install cfsclassifier from GitHub
 devtools::install_github("henriquepott/cfsclassifier")
+```
 
 ---
 
