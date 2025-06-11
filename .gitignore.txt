@@ -1,0 +1,11 @@
+.Rproj.user/
+.Rhistory
+.Rdata
+.DS_Store
+*.Rcheck/
+*.tar.gz
+.Rbuildignore
+# RStudio
+.Rproj
+# Package specific files
+.Rprofile
