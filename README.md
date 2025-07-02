@@ -1,3 +1,4 @@
+# cfsclassifier <img src="man/figures/logo.png" align="right" height="138" />
 
 **Tools for Clinical Frailty Scale (CFS) Classification in R**
 
