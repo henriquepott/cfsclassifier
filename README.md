@@ -3,6 +3,7 @@
 **Tools for Clinical Frailty Scale (CFS) Classification in R**
 
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
 ---
 
 ## Overview
@@ -34,12 +35,62 @@ devtools::install_github("henriquepott/cfsclassifier")
 
 ---
 
-## Variable Mapping Explained
+## Basic Usage
 
-The `classify_cfs` function needs to know which columns in your dataset correspond to the specific variables used in the Clinical Frailty Scale calculation.
+The primary function in this package is classify_cfs(). Here's a quick example using dummy data.
 
-* **Interactive Mapping (Default):** If you call `classify_cfs(your_data)` without the `variable_map` argument, the function will guide you through the process via console prompts. For each standard CFS variable, it will display a description and ask you to type in the exact name of the corresponding column in your `your_data` data frame. If a variable is not available in your data, simply press Enter without typing anything.
-* **Pre-defined Mapping (`variable_map`):** For scripting or repeated use, you can provide a named list (`variable_map`) where the names are the standard CFS variable IDs (e.g., `p40`, `n1`) and the values are the actual column names in your data (e.g., `"My_Dressing_Var"`). Use `NA` for variables that are not present in your dataset.
+```R
+# Load the package
+library(cfsclassifier)
+
+# Create example dummy data (replace with your actual dataset)
+# Ensure your column names and values align with the descriptions below.
+dummy_data <- data.frame(
+  # Example with custom names, mimicking a user's dataset
+  My_Dressing_Var = c(1, 0, 0, 0, 0, 0),
+  My_Eating_Var = c(1, 0, 0, 0, 0, 0),
+  My_Walking_Var = c(1, 0, 0, 0, 0, 0),
+  My_Bed_Transfer_Var = c(0, 1, 0, 0, 0, 0),
+  My_Showering_Var = c(0, 1, 0, 0, 0, 0),
+  My_Phone_Use_Var = c(0, 1, 1, 0, 0, 0),
+  My_Shopping_Var = c(0, 1, 1, 0, 0, 0),
+  My_Cooking_Var = c(0, 1, 1, 0, 0, 0),
+  My_Meds_Var = c(0, 1, 1, 0, 0, 0),
+  My_Money_Var = c(0, 1, 1, 0, 0, 0),
+  My_Housekeeping_Var = c(0, 0, 0, 0, 0, 0),
+  My_Heart_Disease_Var = c(0, 0, 0, 1, 0, 0),
+  My_COPD_Var = c(0, 0, 0, 1, 0, 0),
+  My_Hypertension_Var = c(0, 0, 0, 1, 0, 0),
+  My_Diabetes_Var = c(0, 0, 0, 1, 0, 0),
+  My_Cognition_Score = c(0, 0, 0, 3, 0, 0), # Values 0-5
+  My_Mobility_Score = c(1, 1, 1, 4, 1, 2),  # Values 1-4
+  My_Energy_Level = c(1, 1, 1, 4, 4, 1)     # Values 1-4
+)
+
+# Option 1: Run interactively (recommended for first-time use)
+# This will prompt you in the R console to map your column names.
+# classified_data_interactive <- classify_cfs(dummy_data)
+
+# Option 2: Run with a pre-defined map (recommended for automated scripts)
+# This map explicitly tells the function which of your columns correspond to the standard CFS variables.
+# Use NA for variables not present in your dataset.
+my_variable_map <- list(
+  p40 = "My_Dressing_Var", p46 = "My_Eating_Var", p37 = "My_Walking_Var",
+  p49 = "My_Bed_Transfer_Var", p43 = "My_Showering_Var",
+  p28 = "My_Phone_Use_Var", p26 = "My_Shopping_Var", p20 = "My_Cooking_Var",
+  p30 = "My_Meds_Var", p22 = "My_Money_Var", p33 = "My_Housekeeping_Var",
+  n55 = "My_COPD_Var", n54 = "My_Asthma_Var", n28 = "My_Hypertension_Var",
+  n35 = "My_Diabetes_Var", n50 = NA, n46 = NA, # Example of unmapped/missing diseases
+  n60 = NA, n63_2 = NA, n62 = NA, n63 = NA, n58 = NA, n56 = NA,
+  n57 = NA, n52 = NA, n61 = NA,
+  n1 = "My_Cognition_Score", n73 = "My_Mobility_Score", l2 = "My_Energy_Level"
+)
+
+classified_data_mapped <- classify_cfs(dummy_data, variable_map = my_variable_map)
+
+# View the result
+print(classified_data_mapped)
+```
 
 ---
 
@@ -51,6 +102,8 @@ The `classify_cfs` function needs to know which columns in your dataset correspo
 * **Pre-defined Mapping (`variable_map`):** For scripting or repeated use, you can provide a named list (`variable_map`) where the names are the standard CFS variable IDs (e.g., `p40`, `n1`) and the values are the actual column names in your data (e.g., `"My_Dressing_Var"`). Use `NA` for variables that are not present in your dataset.
 
 ---
+
+
 ## Required Variables and Expected Values
 
 Below is a list of the standard CFS variables that the `cfsclassifier` function expects, along with their descriptions and allowed values. Your input columns should contain data compatible with these types and ranges. Values outside the allowed range or `9` (commonly used for "unknown" or "missing") will be converted to `NA`.
