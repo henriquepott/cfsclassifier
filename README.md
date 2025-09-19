@@ -27,7 +27,7 @@ The `cfsclassifier` package provides a robust and easy-to-use set of functions f
 - Preserved previous version as `R/old_versions/cfs_functions_v1.R`.
 - Tagged release in GitHub as `v2.0`.
 
-### v1.0 – [original date]
+### v1.0 
 - Initial implementation of CFS functions.
 - Rule-based CFS classification with hierarchical scoring from 1 to 7.
 - Supports interactive and pre-defined variable mapping.
