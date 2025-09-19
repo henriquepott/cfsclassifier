@@ -170,8 +170,9 @@ The `classify_cfs` function implements a rule-based algorithm to assign a CFS sc
 
 ## References
 
-* Rockwood, K., Song, X., MacKnight, C., Bergman, H., Hogan, D. B., McDowell, I., & Mitnitski, A. (2005). A global clinical measure of fitness and frailty in elderly people. \emph{CMAJ}, \emph{173}(5), 489-495.
-* More information on the Clinical Frailty Scale can be found at: [https://www.dal.ca/sites/healthy-aging/cfs.html](https://www.dal.ca/sites/healthy-aging/cfs.html)
+* Theou O, Pérez-Zepeda MU, van der Valk AM, Searle SD, Howlett SE, Rockwood K. A classification tree to assist with routine scoring of the Clinical Frailty Scale. Age Ageing. 2021 Jun 28;50(4):1406-1411. doi: 10.1093/ageing/afab006. PMID: 33605412; PMCID: PMC7929455.
+* Rockwood K, Theou O. Using the Clinical Frailty Scale in Allocating Scarce Health Care Resources. Can Geriatr J. 2020 Sep 1;23(3):210-215. doi: 10.5770/cgj.23.463. PMID: 32904824; PMCID: PMC7458601.
+* More information on the Clinical Frailty Scale can be found at: [https://academic.oup.com/ageing/article/50/4/1406/6144822](https://academic.oup.com/ageing/article/50/4/1406/6144822) and [https://cgjonline.ca/index.php/cgj/article/view/463](https://cgjonline.ca/index.php/cgj/article/view/463)
 
 ---
 
