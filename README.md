@@ -19,6 +19,21 @@ The `cfsclassifier` package provides a robust and easy-to-use set of functions f
 
 ---
 
+## Version History
+
+### v2.0 – 2025-09-19
+- Updated `cfs_functions.R` to v2 with minimum comorbidities rule.
+- Adjusted CFS classification logic to handle cases with fewer comorbidities.
+- Preserved previous version as `R/old_versions/cfs_functions_v1.R`.
+- Tagged release in GitHub as `v2.0`.
+
+### v1.0 – [original date]
+- Initial implementation of CFS functions.
+- Rule-based CFS classification with hierarchical scoring from 1 to 7.
+- Supports interactive and pre-defined variable mapping.
+
+---
+
 ## Installation
 
 You can install the `cfsclassifier` package directly from GitHub using `devtools`. If you don't have `devtools` installed, you'll need to install it first.
