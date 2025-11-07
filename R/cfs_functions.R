@@ -149,24 +149,57 @@ classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
 #' @title Validate Clinical Frailty Scale (CFS) Classification
 #' @description Checks whether the CFS classification in a data frame matches expected values
 #'    based on the counts of BADLs, IADLs, comorbidities, and other health variables.
-#' @param df A data frame returned from `classify_cfs`.
+#' @param df A data frame returned from `classify_cfs` or a raw data frame.
+#' @param variable_map Optional named list mapping standard CFS variable names to your dataset's columns.
 #' @param min_comorbidities Minimum number of comorbidities required to assign CFS score (default 10).
 #' @return A list containing:
 #'    - df: the input data frame with additional columns 'expected_cfs' and 'check_pass'.
 #'    - summary_pass: a table summarizing TRUE/FALSE for check_pass.
 #'    - failed_cases: subset of df where the classification did not match expected.
 #' @export
-validate_cfs <- function(df, min_comorbidities = 10) {
+validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
+
+  # Função auxiliar para acessar colunas com segurança (similar à usada em classify_cfs)
+  safe_column_access <- function(df, var_name) {
+    if (is.null(var_name) || !var_name %in% names(df)) {
+      return(rep(NA_real_, nrow(df)))
+    } else {
+      # Tenta buscar pelo nome da coluna, garantindo que seja um vetor
+      return(df[[var_name]])
+    }
+  }
+
+  # Mapeamento e Definição de Variáveis Chave
+  std_vars_key <- c("general_health", "daily_effort", "physical_activity", "terminally_ill")
+  if(is.null(variable_map)) variable_map <- setNames(std_vars_key, std_vars_key)
+  get_var <- function(var) variable_map[[var]] %||% var # Assuming %||% is available or use if/else
+
+  gh_var <- get_var("general_health")
+  effort_var <- get_var("daily_effort")
+  phys_var <- get_var("physical_activity")
+  term_var <- get_var("terminally_ill")
+
+  # Verifica se as colunas balds_count, ialds_count, diseases_count e cfs_score existem
+  if (!all(c("balds_count", "ialds_count", "diseases_count", "cfs_score") %in% names(df))) {
+    stop("Input data frame must contain 'balds_count', 'ialds_count', 'diseases_count', and 'cfs_score', which are added by classify_cfs().")
+  }
 
   df <- df %>%
     dplyr::mutate(
+      # Safe access to calculated counts (should exist from classify_cfs)
       b = balds_count,
       iald = ialds_count,
       d = diseases_count,
 
+      # Safe access to key mapped columns from the *original* data
+      gh = safe_column_access(., gh_var),
+      e = safe_column_access(., effort_var),
+      p = safe_column_access(., phys_var),
+      term = safe_column_access(., term_var),
+
       expected_cfs = dplyr::case_when(
         # Terminal Rules (CFS 8–9)
-        terminally_ill == 1 ~ dplyr::if_else(b <= 2, "9", "8"),
+        term == 1 ~ dplyr::if_else(b <= 2, "9", "8"),
 
         # CFS 7
         b >= 3 ~ "7",
@@ -178,29 +211,40 @@ validate_cfs <- function(df, min_comorbidities = 10) {
         b == 0 & iald %in% 1:4 ~ "5",
 
         # CFS 4
-        b == 0 & iald == 0 & (d >= min_comorbidities | general_health %in% 4:5 | daily_effort == 5) ~ "4",
+        b == 0 & iald == 0 & (d >= min_comorbidities | gh %in% 4:5 | e == 5) ~ "4",
 
         # CFS 3
         b == 0 & iald == 0 & d < min_comorbidities &
           (
-            (general_health == 1 & daily_effort %in% 3:4 & physical_activity == 0) |
-              (general_health %in% 2:3 & daily_effort %in% 1:4 & physical_activity == 0)
+            (gh == 1 & e %in% 3:4 & p == 0) |
+              (gh %in% 2:3 & e %in% 1:4 & p == 0)
           ) ~ "3",
 
         # CFS 2
         b == 0 & iald == 0 & d < min_comorbidities &
           (
-            (general_health == 1 & daily_effort %in% 3:4 & physical_activity == 1) |
-              (general_health %in% 2:3 & daily_effort %in% 1:4 & physical_activity == 1) |
-              (general_health == 1 & daily_effort %in% 1:2 & physical_activity == 0) # ADICIONADO
+            (gh == 1 & e %in% 3:4 & p == 1) |
+              (gh %in% 2:3 & e %in% 1:4 & p == 1) |
+              (gh == 1 & e %in% 1:2 & p == 0) # ADICIONADO
           ) ~ "2",
 
         # CFS 1
-        b == 0 & iald == 0 & d < min_comorbidities & general_health == 1 & daily_effort %in% 1:2 & physical_activity == 1 ~ "1",
+        b == 0 & iald == 0 & d < min_comorbidities & gh == 1 & e %in% 1:2 & p == 1 ~ "1",
 
         .default = NA_character_
       ),
 
+      check_pass = as.logical(cfs_score == expected_cfs)
+    )
+
+  # Aplica NA final ao expected_cfs se os valores chave estiverem faltando
+  df <- df %>%
+    dplyr::mutate(
+      expected_cfs = dplyr::if_else(
+        is.na(gh) | is.na(e) | is.na(p) | is.na(term),
+        NA_character_,
+        expected_cfs
+      ),
       check_pass = as.logical(cfs_score == expected_cfs)
     )
 
