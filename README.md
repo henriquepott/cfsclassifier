@@ -119,7 +119,31 @@ classified_data_mapped$cfs_group_3 <- cfs_group(classified_data_mapped$cfs_score
 # View the result with new labels
 print(classified_data_mapped)
 ```
+
 ---
+
+## Validation and Quality Control
+The `validate_cfs` function is included as a powerful tool for *internal consistency checking*.
+While the Clinical Frailty Scale is a highly validated clinical instrument (see References), this package's validation function ensures that:
+
+* Your **input data is correctly mapped** to the package's variables.
+* The **classification algorithm is performing its internal logic correctly** on your dataset.
+
+It does this by calculating the expected CFS score (`expected_cfs`) independently from the final `cfs_score` and setting a `check_pass` flag.
+
+```R
+validation_result <- validate_cfs(classified_data_mapped)
+
+# Check how many cases passed the internal check
+print(validation_result$summary_pass)
+
+# View cases where the expected CFS score did not match the classified score
+print(validation_result$failed_cases)
+```
+
+
+---
+
 
 ## Variable Mapping Explained
 
