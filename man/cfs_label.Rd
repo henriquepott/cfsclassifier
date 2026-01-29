@@ -13,5 +13,6 @@ cfs_label(cfs)
 A factor vector with descriptive labels.
 }
 \description{
-Convert numeric CFS scores to descriptive labels
+Converts numeric CFS scores (1–9) into the original descriptive
+categories as ordered factors.
 }

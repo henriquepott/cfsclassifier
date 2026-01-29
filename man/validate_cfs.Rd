@@ -4,10 +4,12 @@
 \alias{validate_cfs}
 \title{Validate Clinical Frailty Scale (CFS) Classification}
 \usage{
-validate_cfs(df, min_comorbidities = 10)
+validate_cfs(df, variable_map = NULL, min_comorbidities = 10)
 }
 \arguments{
-\item{df}{A data frame returned from \code{classify_cfs}.}
+\item{df}{A data frame returned from \code{classify_cfs} or a raw data frame.}
+
+\item{variable_map}{Optional named list mapping standard CFS variable names to your dataset's columns.}
 
 \item{min_comorbidities}{Minimum number of comorbidities required to assign CFS score (default 10).}
 }

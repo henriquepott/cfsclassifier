@@ -1,6 +1,6 @@
 Package: cfsclassifier
 Title: Clinical Frailty Scale (CFS) Classification
-Version: 0.1.0
+Version: 0.1.1
 Authors@R:
     person("Henrique", "Pott", email = "henriquepott@ufscar.br",
            role = c("aut", "cre"))
@@ -9,4 +9,12 @@ Description: This package provides functions to classify the Clinical Frailty Sc
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
+Imports: 
+    dplyr,
+    magrittr,
+    tibble
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

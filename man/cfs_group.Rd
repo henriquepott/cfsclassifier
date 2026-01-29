@@ -4,16 +4,17 @@
 \alias{cfs_group}
 \title{Group CFS scores into frailty categories}
 \usage{
-cfs_group(cfs, scheme = c("2group", "3group"))
+cfs_group(cfs, scheme = c("2group", "4group"))
 }
 \arguments{
 \item{cfs}{A numeric vector of CFS scores (1-9).}
 
-\item{scheme}{A character string specifying the grouping scheme ("2group" or "3group").}
+\item{scheme}{A character string specifying the grouping scheme ("2group" or "4group").}
 }
 \value{
 A factor vector with frailty group labels.
 }
 \description{
-Group CFS scores into frailty categories
+Aggregates CFS levels into analytically convenient groupings
+commonly used in epidemiological and clinical research.
 }

@@ -1,4 +1,5 @@
-#' @importFrom stats setNames
+pacman::p_load(dplyr, tidyr, tibble)
+
 #' @title Clean Clinical Frailty Scale Variables
 #' @description Cleans specified variables in a data frame, replacing invalid values and '9' with NA.
 #' @param df A data frame.
@@ -39,7 +40,7 @@ clean_cfs_variables <- function(df, variables, allowed_values) {
 #' @param data A data frame containing the necessary variables for CFS classification.
 #' @param variable_map Optional named list mapping standard CFS variable names to your dataset's columns.
 #' @param min_comorbidities Minimum number of comorbidities required to assign CFS score (default 10).
-#' @return The input data frame with 'balds_count', 'iadls_count', 'diseases_count', and 'cfs_score' added.
+#' @return The input data frame with 'balds_count', 'ialds_count', 'diseases_count', and 'cfs_score' added.
 #' @export
 classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
 
@@ -55,7 +56,7 @@ classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
 
   std_vars <- c(
     "bald_dressing","bald_eating","bald_walking","bald_bed_transfer","bald_showering",
-    "iadl_phone_use","iadl_shopping","iadl_meal_prep","iadl_med_management","iadl_finance","iadl_housekeeping",
+    "iald_phone_use","iald_shopping","iald_meal_prep","iald_med_management","iald_finance","iald_housekeeping",
     "disease_copd","disease_asthma","disease_hypertension","disease_diabetes","disease_heart_fail",
     "disease_heart_attack","disease_cancer","disease_dementia","disease_parkinson","disease_alzheimer",
     "disease_spine","disease_arthritis","disease_osteoporosis","disease_stroke","disease_renal",
@@ -71,17 +72,17 @@ classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
   term_var <- get_var("terminally_ill")
 
   balds_keys <- c("bald_dressing","bald_eating","bald_walking","bald_bed_transfer","bald_showering")
-  iadls_keys <- c("iadl_phone_use","iadl_shopping","iadl_meal_prep","iadl_med_management","iadl_finance","iadl_housekeeping")
+  ialds_keys <- c("iald_phone_use","iald_shopping","iald_meal_prep","iald_med_management","iald_finance","iald_housekeeping")
   diseases_keys <- grep("^disease_", names(variable_map), value = TRUE)
 
   balds_vars_raw <- intersect(unlist(variable_map[balds_keys]), names(df))
-  iadls_vars_raw <- intersect(unlist(variable_map[iadls_keys]), names(df))
+  ialds_vars_raw <- intersect(unlist(variable_map[ialds_keys]), names(df))
   diseases_vars_raw <- intersect(unlist(variable_map[diseases_keys]), names(df))
 
   df <- df %>%
     dplyr::mutate(
       balds_count = if(length(balds_vars_raw) > 0) rowSums(dplyr::select(., dplyr::all_of(balds_vars_raw)) == 1, na.rm = TRUE) else 0,
-      iadls_count = if(length(iadls_vars_raw) > 0) rowSums(dplyr::select(., dplyr::all_of(iadls_vars_raw)) == 1, na.rm = TRUE) else 0,
+      ialds_count = if(length(ialds_vars_raw) > 0) rowSums(dplyr::select(., dplyr::all_of(ialds_vars_raw)) == 1, na.rm = TRUE) else 0,
       diseases_count = if(length(diseases_vars_raw) > 0) rowSums(dplyr::select(., dplyr::all_of(diseases_vars_raw)) == 1, na.rm = TRUE) else 0
     )
 
@@ -102,31 +103,31 @@ classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
         balds_count >= 3 ~ "7",
 
         # CFS 6
-        balds_count %in% 1:2 | (balds_count == 0 & iadls_count >= 5) ~ "6",
+        balds_count %in% 1:2 | (balds_count == 0 & ialds_count >= 5) ~ "6",
 
         # CFS 5
-        balds_count == 0 & iadls_count %in% 1:4 ~ "5",
+        balds_count == 0 & ialds_count %in% 1:4 ~ "5",
 
         # CFS 4
-        balds_count == 0 & iadls_count == 0 & (diseases_count >= min_comorbidities | gh %in% 4:5 | e == 5) ~ "4",
+        balds_count == 0 & ialds_count == 0 & (diseases_count >= min_comorbidities | gh %in% 4:5 | e == 5) ~ "4",
 
         # CFS 3
-        balds_count == 0 & iadls_count == 0 & diseases_count < min_comorbidities &
+        balds_count == 0 & ialds_count == 0 & diseases_count < min_comorbidities &
           (
             (gh == 1 & e %in% 3:4 & p == 0) |
               (gh %in% 2:3 & e %in% 1:4 & p == 0)
           ) ~ "3",
 
         # CFS 2
-        balds_count == 0 & iadls_count == 0 & diseases_count < min_comorbidities &
+        balds_count == 0 & ialds_count == 0 & diseases_count < min_comorbidities &
           (
             (gh == 1 & e %in% 3:4 & p == 1) |
               (gh %in% 2:3 & e %in% 1:4 & p == 1) |
-              (gh == 1 & e %in% 1:2 & p == 0)
+              (gh == 1 & e %in% 1:2 & p == 0) # ADICIONADO: GH Exc, E Mínimo, Sem Ativ (CFS 2 por regra textual)
           ) ~ "2",
 
         # CFS 1
-        balds_count == 0 & iadls_count == 0 & diseases_count < min_comorbidities & gh == 1 & e %in% 1:2 & p == 1 ~ "1",
+        balds_count == 0 & ialds_count == 0 & diseases_count < min_comorbidities & gh == 1 & e %in% 1:2 & p == 1 ~ "1",
 
         # Contingency Fallback: If data is complete but doesn't fit in 1, 2, 4-7, classify as 3.
         .default = "3"
@@ -158,10 +159,12 @@ classify_cfs <- function(data, variable_map = NULL, min_comorbidities = 10) {
 #' @export
 validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
 
+  # Função auxiliar para acessar colunas com segurança (similar à usada em classify_cfs)
   safe_column_access <- function(df, var_name) {
     if (is.null(var_name) || !var_name %in% names(df)) {
       return(rep(NA_real_, nrow(df)))
     } else {
+      # Tenta buscar pelo nome da coluna, garantindo que seja um vetor
       return(df[[var_name]])
     }
   }
@@ -169,24 +172,26 @@ validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
   # Mapeamento e Definição de Variáveis Chave
   std_vars_key <- c("general_health", "daily_effort", "physical_activity", "terminally_ill")
   if(is.null(variable_map)) variable_map <- setNames(std_vars_key, std_vars_key)
-  get_var <- function(var) variable_map[[var]] %||% var
+  get_var <- function(var) variable_map[[var]] %||% var # Assuming %||% is available or use if/else
 
   gh_var <- get_var("general_health")
   effort_var <- get_var("daily_effort")
   phys_var <- get_var("physical_activity")
   term_var <- get_var("terminally_ill")
 
-  # Verifica se as colunas balds_count, iadls_count, diseases_count e cfs_score existem
-  if (!all(c("balds_count", "iadls_count", "diseases_count", "cfs_score") %in% names(df))) {
-    stop("Input data frame must contain 'balds_count', 'iadls_count', 'diseases_count', and 'cfs_score', which are added by classify_cfs().")
+  # Verifica se as colunas balds_count, ialds_count, diseases_count e cfs_score existem
+  if (!all(c("balds_count", "ialds_count", "diseases_count", "cfs_score") %in% names(df))) {
+    stop("Input data frame must contain 'balds_count', 'ialds_count', 'diseases_count', and 'cfs_score', which are added by classify_cfs().")
   }
 
   df <- df %>%
     dplyr::mutate(
+      # Safe access to calculated counts (should exist from classify_cfs)
       b = balds_count,
-      iadl = iadls_count,
+      iald = ialds_count,
       d = diseases_count,
 
+      # Safe access to key mapped columns from the *original* data
       gh = safe_column_access(., gh_var),
       e = safe_column_access(., effort_var),
       p = safe_column_access(., phys_var),
@@ -200,31 +205,31 @@ validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
         b >= 3 ~ "7",
 
         # CFS 6
-        b %in% 1:2 | (b == 0 & iadl >= 5) ~ "6",
+        b %in% 1:2 | (b == 0 & iald >= 5) ~ "6",
 
         # CFS 5
-        b == 0 & iadl %in% 1:4 ~ "5",
+        b == 0 & iald %in% 1:4 ~ "5",
 
         # CFS 4
-        b == 0 & iadl == 0 & (d >= min_comorbidities | gh %in% 4:5 | e == 5) ~ "4",
+        b == 0 & iald == 0 & (d >= min_comorbidities | gh %in% 4:5 | e == 5) ~ "4",
 
         # CFS 3
-        b == 0 & iadl == 0 & d < min_comorbidities &
+        b == 0 & iald == 0 & d < min_comorbidities &
           (
             (gh == 1 & e %in% 3:4 & p == 0) |
               (gh %in% 2:3 & e %in% 1:4 & p == 0)
           ) ~ "3",
 
         # CFS 2
-        b == 0 & iadl == 0 & d < min_comorbidities &
+        b == 0 & iald == 0 & d < min_comorbidities &
           (
             (gh == 1 & e %in% 3:4 & p == 1) |
               (gh %in% 2:3 & e %in% 1:4 & p == 1) |
-              (gh == 1 & e %in% 1:2 & p == 0)
+              (gh == 1 & e %in% 1:2 & p == 0) # ADICIONADO
           ) ~ "2",
 
         # CFS 1
-        b == 0 & iadl == 0 & d < min_comorbidities & gh == 1 & e %in% 1:2 & p == 1 ~ "1",
+        b == 0 & iald == 0 & d < min_comorbidities & gh == 1 & e %in% 1:2 & p == 1 ~ "1",
 
         .default = NA_character_
       ),
@@ -232,6 +237,7 @@ validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
       check_pass = as.logical(cfs_score == expected_cfs)
     )
 
+  # Aplica NA final ao expected_cfs se os valores chave estiverem faltando
   df <- df %>%
     dplyr::mutate(
       expected_cfs = dplyr::if_else(
@@ -249,23 +255,20 @@ validate_cfs <- function(df, variable_map = NULL, min_comorbidities = 10) {
 }
 
 #' @title Convert numeric CFS scores to descriptive labels
-#' @description Converts numeric CFS scores (1–9) into the original descriptive
-#' categories as ordered factors.
 #' @param cfs A numeric vector of CFS scores (1-9).
 #' @return A factor vector with descriptive labels.
-#' @export
 cfs_label <- function(cfs) {
 
   labels <- c(
-    "Very fit",
+    "Very Fit",
     "Fit",
-    "Managing well",
-    "Living with very mild frailty",
-    "Living with mild frailty",
-    "Living with moderate frailty",
-    "Living with severe frailty",
-    "Living with very severe frailty",
-    "Terminally ill"
+    "Managing Well",
+    "Living with Very Mild Frailty",
+    "Living with Mild Frailty",
+    "Living with Moderate Frailty",
+    "Living with Severe Frailty",
+    "Living with Very Severe Frailty",
+    "Terminally Ill"
   )
 
   cfs <- suppressWarnings(as.numeric(cfs))
@@ -280,38 +283,24 @@ cfs_label <- function(cfs) {
 }
 
 #' @title Group CFS scores into frailty categories
-#' @description Aggregates CFS levels into analytically convenient groupings
-#' commonly used in epidemiological and clinical research.
 #' @param cfs A numeric vector of CFS scores (1-9).
-#' @param scheme A character string specifying the grouping scheme ("2group" or "4group").
+#' @param scheme A character string specifying the grouping scheme ("2group" or "3group").
 #' @return A factor vector with frailty group labels.
-#' @export
-cfs_group <- function(cfs, scheme = c("2group", "4group")) {
+cfs_group <- function(cfs, scheme = c("2group", "3group")) {
 
   scheme <- match.arg(scheme)
   cfs <- suppressWarnings(as.numeric(cfs))
   cfs[!cfs %in% 1:9] <- NA
 
   if (scheme == "2group") {
-    # Non-frail (1–4) vs Frail (5–9)
-    group <- dplyr::case_when(
-      cfs %in% 1:4 ~ "Non-frail",
-      cfs %in% 5:9 ~ "Frail",
-      TRUE ~ NA_character_
-    )
-    lvls <- c("Non-frail", "Frail")
-
-  } else if (scheme == "4group") {
-    # Fit (1-3), Very mild (4), Mild (5), Moderate-to-severe (6-9)
-    group <- dplyr::case_when(
-      cfs %in% 1:3 ~ "Fit",
-      cfs == 4      ~ "Very mild frailty",
-      cfs == 5      ~ "Mild frailty",
-      cfs %in% 6:9 ~ "Moderate-to-severe frailty",
-      TRUE ~ NA_character_
-    )
-    lvls <- c("Fit", "Very mild frailty", "Mild frailty", "Moderate-to-severe frailty")
+    group <- ifelse(cfs <= 4, "Non-frail",
+                    ifelse(cfs >= 5, "Frail", NA))
+    group <- factor(group, levels = c("Non-frail", "Frail"), ordered = TRUE)
+  } else {
+    group <- cut(cfs,
+                 breaks = c(0, 3, 5, 9),
+                 labels = c("Non-frail", "Pre-frail", "Frail"),
+                 right = TRUE)
   }
-
-  factor(group, levels = lvls, ordered = TRUE)
+  return(group)
 }

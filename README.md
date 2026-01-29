@@ -15,23 +15,21 @@ The `cfsclassifier` package provides a robust and easy-to-use set of functions f
 * **Automated CFS Classification:** Applies the defined CFS algorithm to your dataset.
 * **Flexible Variable Mapping:** Supports both interactive console-based mapping and pre-defined `variable_map` lists to match your dataset's column names with standard CFS variables.
 * **Data Cleaning:** Automatically cleans relevant variables, converting invalid entries (e.g., `9` for unknown/missing, or out-of-range values) to `NA`.
-* **Detailed Output:** Appends `balds_count`, `ialds_count`, `diseases_count`, and the final `cfs_score` to your input data frame.
+* **Detailed Output:** Appends `balds_count`, `iadls_count`, `diseases_count`, and the final `cfs_score` to your input data frame.
 * **Utility Functions:** Includes helpers for labeling (`cfs_label`), grouping (`cfs_group`), and validation (`validate_cfs`) of CFS scores.
 
 ---
 
 ## Version History
 
-### v2.0 – 2025-09-19
-- **Major Update:** Adjusted CFS classification logic to include **CFS scores 8 and 9 (Terminally Ill)** and implement the minimum comorbidities rule (default 10).
-- Updated `cfs_functions.R` to v2.
-- Preserved previous version as `R/old_versions/cfs_functions_v1.R`.
-- Tagged release in GitHub as `v2.0`.
+### v0.1.1 – 2026-01-29
+- **Grouping Update:** Replaced the 3-group scheme with a more clinically refined **4-group scheme** (Fit, Very mild, Mild, and Moderate-to-severe frailty).
+- **Label Standardisation:** Updated `cfs_label` output to *Sentence case* (e.g., "Living with very mild frailty") for better integration into academic reports.
+- **Documentation:** Added a comprehensive package Vignette and cleaned up global variable notes for CRAN-compliant checks.
 
-### v1.0
-- Initial implementation of CFS functions.
-- Rule-based CFS classification with hierarchical scoring from 1 to 7.
-- Supports interactive and pre-defined variable mapping.
+### v0.1.0
+- **Major Update:** Adjusted CFS classification logic to include **CFS scores 8 and 9 (Terminally ill)** and implemented the minimum comorbidities rule (default 10).
+- Initial implementation of hierarchical rule-based classification (1 to 9).
 
 ---
 
@@ -81,9 +79,9 @@ my_variable_map <- list(
   # BALDS
   bald_dressing = "My_Dressing_Var", bald_eating = "My_Eating_Var", bald_walking = "My_Walking_Var",
   bald_bed_transfer = "My_Bed_Transfer_Var", bald_showering = "My_Showering_Var",
-  # IALDS
-  iald_phone_use = "My_Phone_Use_Var", iald_shopping = "My_Shopping_Var", iald_meal_prep = "My_Cooking_Var",
-  iald_med_management = "My_Meds_Var", iald_finance = "My_Money_Var", iald_housekeeping = "My_Housekeeping_Var",
+  # iadlS
+  iadl_phone_use = "My_Phone_Use_Var", iadl_shopping = "My_Shopping_Var", iadl_meal_prep = "My_Cooking_Var",
+  iadl_med_management = "My_Meds_Var", iadl_finance = "My_Money_Var", iadl_housekeeping = "My_Housekeeping_Var",
   # DISEASES
   disease_copd = "My_COPD_Var", disease_asthma = "My_Asthma_Var", disease_hypertension = "My_Hypertension_Var",
   disease_diabetes = "My_Diabetes_Var", disease_heart_fail = NA, disease_heart_attack = NA,
@@ -106,18 +104,18 @@ Beyond the main classification, the package provides helpers to label and group 
 ```R
 # Assuming 'classified_data_mapped' is the output from classify_cfs()
 
-# 1. Convert numeric CFS score to descriptive labels (e.g., "7" to "Living with Severe Frailty")
+# 1. Convert numeric CFS score to descriptive labels (e.g., 7 to "Living with severe frailty")
 classified_data_mapped$cfs_label <- cfs_label(classified_data_mapped$cfs_score)
 
 # 2. Group CFS scores into standard categories
 # 2.1. Two-group classification (Non-frail: CFS 1-4, Frail: CFS 5-9)
 classified_data_mapped$cfs_group_2 <- cfs_group(classified_data_mapped$cfs_score, scheme = "2group")
 
-# 2.2. Three-group classification (Non-frail: 1-3, Pre-frail: 4-5, Frail: 6-9)
-classified_data_mapped$cfs_group_3 <- cfs_group(classified_data_mapped$cfs_score, scheme = "3group")
+# 2.2. Four-group classification (Fit: 1-3, Very mild: 4, Mild: 5, Moderate-to-severe: 6-9)
+classified_data_mapped$cfs_group_4 <- cfs_group(classified_data_mapped$cfs_score, scheme = "4group")
 
-# View the result with new labels
-print(classified_data_mapped)
+# View the results
+print(classified_data_mapped %>% select(cfs_score, cfs_label, cfs_group_4))
 ```
 
 ---
@@ -165,13 +163,13 @@ Below is the list of standard package variable names that should be used in the 
 * **`bald_bed_transfer`**: Bed Transfer: Do you have any difficulty with GETTING IN OR OUT OF BED?
 * **`bald_showering`**: Showering: Do you have any difficulty with SHOWERING?
 
-### Instrumental Activities of Daily Living (IALDS) - Expected values: `0` (No difficulty), `1` (Yes, difficulty)
-* **`iald_phone_use`**: Telephone Use: Do you have any difficulty with USING TELEPHONE (LANDLINE OR CELLULAR)?
-* **`iald_shopping`**: Shopping: Do you have any difficulty with DOING SHOPPING?
-* **`iald_meal_prep`**: Meal Prep: Do you have any difficulty with preparing A HOT MEAL?
-* **`iald_med_management`**: Medication Management: Do you have any difficulty with TAKING/MANAGING YOUR OWN MEDICATIONS?
-* **`iald_finance`**: Financial Management: Do you have any difficulty with MANAGING YOUR OWN MONEY?
-* **`iald_housekeeping`**: Light Housekeeping: Do you have any difficulty with PERFORMING LIGHT HOUSEKEEPING?
+### Instrumental Activities of Daily Living (iadlS) - Expected values: `0` (No difficulty), `1` (Yes, difficulty)
+* **`iadl_phone_use`**: Telephone Use: Do you have any difficulty with USING TELEPHONE (LANDLINE OR CELLULAR)?
+* **`iadl_shopping`**: Shopping: Do you have any difficulty with DOING SHOPPING?
+* **`iadl_meal_prep`**: Meal Prep: Do you have any difficulty with preparing A HOT MEAL?
+* **`iadl_med_management`**: Medication Management: Do you have any difficulty with TAKING/MANAGING YOUR OWN MEDICATIONS?
+* **`iadl_finance`**: Financial Management: Do you have any difficulty with MANAGING YOUR OWN MONEY?
+* **`iadl_housekeeping`**: Light Housekeeping: Do you have any difficulty with PERFORMING LIGHT HOUSEKEEPING?
 
 ### Health Conditions (DISEASES) - Expected values: `0` (No), `1` (Yes)
 * **`disease_copd`**: COPD
@@ -194,7 +192,7 @@ Below is the list of standard package variable names that should be used in the 
 * **`general_health`**: General Health: `0`=Excellent, `1`=Very good, `2`=Good, `3`=Fair, `4`=Bad, `5`=Very bad
 * **`daily_effort`**: Daily Activities Effort: `1`=Never/rarely, `2`=Very few times, `3`=Sometimes, `4`=Most of the time
 * **`physical_activity`**: Physical Activity: `1`=More than once a week, `2`=Once a week, `3`=1 to 3 times a month, `4`=Rarely or never
-* **`terminally_ill`**: Terminally Ill status: `0`=(No), `1`=(Yes)
+* **`terminally_ill`**: Terminally Ill status: `0`=(No), `1`=(Yes) (Required for CFS 9 classification).
 
 ---
 
